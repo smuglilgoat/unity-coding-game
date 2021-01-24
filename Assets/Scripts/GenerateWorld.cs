@@ -7,10 +7,15 @@ using TMPro;
 public class GenerateWorld : MonoBehaviour
 {
     private GameObject floor_container;
-    public int[] world_size = {5, 8};
+
+    [System.NonSerialized]
+    public int[] world_size = {8, 2, 8};
+    public int[, ,] collision_map;
 
     public GameObject floor_unit_prefab;
     public GameObject robot_prefab;
+    public GameObject rock_prefab;
+
     public GameObject console;
     public TMP_InputField console_input;
     public RectTransform console_current_line;
@@ -21,56 +26,75 @@ public class GenerateWorld : MonoBehaviour
     private GameObject selected_robot;
 
     private float tick = 1f;
-    private float progress = 0f;
-    private float lerp_speed = 3f;
+    private float move_progress = 0f;
+    private float move_speed = 3f;
+    private float rotation_progress = 0f;
+    private float rotate_speed = 3f;
 
     public class ToMove{
-        public Vector3 from;
-        public Vector3 to;
-        public ToMove(Vector3 from, Vector3 to){
-            this.from = from;
-            this.to = to;
+        public Vector3 position_from;
+        public Vector3 position_to;
+        public Quaternion rotation_from;
+        public Quaternion rotation_to;
+
+        public ToMove(Vector3 position_from, Vector3 position_to, Quaternion rotation_from, Quaternion rotation_to){
+            this.position_from = position_from;
+            this.position_to = position_to;
+            this.rotation_from = rotation_from;
+            this.rotation_to = rotation_to;
         }
     }
     private Dictionary<GameObject, ToMove> to_move = new Dictionary<GameObject, ToMove>();
     public List<GameObject> to_update = new List<GameObject>();
 
+    GameObject SpawnObject(GameObject prefab, Vector3Int position){
+        GameObject obj = Instantiate(prefab, position, Quaternion.identity);
+        collision_map[position.x, position.y, position.z] = 1;
+        obj.GetComponent<Thing>().position = position;
+        return obj;
+    }
+
     void Start(){
         console_input.onValueChanged.AddListener(delegate {ProgramChange(); });
         robot_toggle.onValueChanged.AddListener(delegate {ToggleRobot(); });
 
-        floor_container = new GameObject("floor_container");
+        floor_container = new GameObject("FloorContainer");
         floor_container.transform.position = new Vector3(0, 0, 0);
 
+        collision_map = new int[world_size[0], world_size[1], world_size[2]];
         for(int i = 0; i < world_size[0]; i++){
             for(int j = 0; j < world_size[1]; j++){
-                GameObject floor_unit = Instantiate(floor_unit_prefab,
-                    new Vector3(-(world_size[0]/2)+i, 0, -(world_size[1]/2)+j),
-                    Quaternion.identity);
+                for(int k = 0; k < world_size[2]; k++){
+                    collision_map[i, j, k] = 0;
+                }
+            }
+        }
+
+        for(int i = 0; i < world_size[0]; i++){
+            for(int j = 0; j < world_size[2]; j++){
+                GameObject floor_unit = SpawnObject(floor_unit_prefab, new Vector3Int(i, 0, j));
                 floor_unit.transform.SetParent(floor_container.transform, false);
             }
         }
 
-        //////
-        GameObject robot = Instantiate(robot_prefab, new Vector3(0, 1, 0), Quaternion.identity);
-        robot.GetComponent<RobotBehaviour>().position = new Vector2(0, 0);
+        GameObject robot = SpawnObject(robot_prefab, new Vector3Int(0, 1, 1));
         to_update.Add(robot);
 
-        GameObject robot2 = Instantiate(robot_prefab, new Vector3(2, 1, 0), Quaternion.identity);
-        robot2.GetComponent<RobotBehaviour>().position = new Vector2(2, 0);
-        to_update.Add(robot2);
-        //////
+        SpawnObject(rock_prefab, new Vector3Int(4, 1, 1));
+        SpawnObject(rock_prefab, new Vector3Int(0, 1, 4));
+
+        /*GameObject rock = Instantiate(rock_prefab, Vector3.zero, Quaternion.identity);
+        collision_map[2, 1, 1] = 1;*/
     }
 
     void ProgramChange(){
-        selected_robot.GetComponent<RobotBehaviour>().program = console_input.text;
+        selected_robot.GetComponent<Robot>().program = console_input.text;
     }
 
     void ToggleRobot(){
         if(selected_robot == null) return;
-        selected_robot.GetComponent<RobotBehaviour>().on = robot_toggle.isOn;
-        selected_robot.GetComponent<RobotBehaviour>().current_line = 0;
-        console_input.readOnly = selected_robot.GetComponent<RobotBehaviour>().on;
+        selected_robot.GetComponent<Robot>().is_on = robot_toggle.isOn;
+        console_input.readOnly = selected_robot.GetComponent<Robot>().is_on;
     }
 
     void Update(){
@@ -78,16 +102,15 @@ public class GenerateWorld : MonoBehaviour
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if(Physics.Raycast(ray, out hit)){
-                if(hit.transform.GetComponent<RobotBehaviour>()){
+                if(hit.transform.GetComponent<Robot>()){
                     console_up = true;
                     selected_robot = hit.transform.gameObject;
-                    selected_robot.GetComponent<RobotBehaviour>().error = false;
-                    console_input.text = selected_robot.GetComponent<RobotBehaviour>().program;
+                    console_input.text = selected_robot.GetComponent<Robot>().program;
                     console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
-                                                        -selected_robot.GetComponent<RobotBehaviour>().current_line*35+225, 0);
+                                                        -selected_robot.GetComponent<Robot>().current_line*35+225, 0);
                     console_current_line.gameObject.GetComponent<Image>().color = new Color32(255, 255, 225, 114);
-                    robot_toggle.isOn = selected_robot.GetComponent<RobotBehaviour>().on;
-                    console_input.readOnly = selected_robot.GetComponent<RobotBehaviour>().on;
+                    robot_toggle.isOn = selected_robot.GetComponent<Robot>().is_on;
+                    console_input.readOnly = selected_robot.GetComponent<Robot>().is_on;
                 }
             }
         }
@@ -107,38 +130,47 @@ public class GenerateWorld : MonoBehaviour
             new Vector3(0, 0, 0), console_l*2);
 
         foreach(KeyValuePair<GameObject, ToMove> o in to_move){
-            o.Key.transform.position = Vector3.Lerp(o.Value.from, o.Value.to, progress);
+            Transform t = o.Key.transform;
+            t.position = Vector3.Lerp(o.Value.position_from, o.Value.position_to, move_progress);
+            t.rotation = Quaternion.Lerp(o.Value.rotation_from, o.Value.rotation_to, rotation_progress);
         }
 
         tick -= Time.deltaTime;
-        progress += Time.deltaTime*lerp_speed;
+        move_progress += Time.deltaTime*move_speed;
+        rotation_progress += Time.deltaTime*rotate_speed;
+
         if(tick <= 0){
             if(selected_robot != null){
                 console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
-                                                        -selected_robot.GetComponent<RobotBehaviour>().current_line*35+225, 0);
+                                                        -selected_robot.GetComponent<Robot>().current_line*35+225, 0);
             }
             foreach(KeyValuePair<GameObject, ToMove> o in to_move){
-                o.Key.transform.position = o.Value.to;
+                o.Key.transform.position = o.Value.position_to;
             }
             to_move.Clear();
 
             foreach(GameObject o in to_update){
-                if(o.GetComponent<RobotBehaviour>()){
-                    o.GetComponent<RobotBehaviour>().Tick();
-                    Vector2 robot_pos = o.GetComponent<RobotBehaviour>().position;
-                    Vector3 next_pos = new Vector3(robot_pos.x, 1, robot_pos.y);
-                    to_move[o] = new ToMove(o.transform.position, next_pos);
+                if(o.GetComponent<Robot>() != null && o.GetComponent<Robot>().Tick()){
+                    Vector3Int thing_pos = o.GetComponent<Thing>().position;
+                    Quaternion rotation_to = Quaternion.Euler(new Vector3(0, o.GetComponent<Thing>().orientation*90, 0));
+                    to_move[o] = new ToMove(o.transform.position, thing_pos, o.transform.rotation, rotation_to);
                 }
             }
             if(selected_robot != null){
-                robot_toggle.isOn = selected_robot.GetComponent<RobotBehaviour>().on;
-                if(selected_robot.GetComponent<RobotBehaviour>().error){
-                    console_current_line.gameObject.GetComponent<Image>().color = new Color32(255, 0, 0, 114);
+                robot_toggle.isOn = selected_robot.GetComponent<Robot>().is_on;
+                Color32 color;
+                if(selected_robot.GetComponent<Robot>().in_error){
+                    color = new Color32(255, 0, 0, 114);
                 }
+                else{
+                    color = new Color32(255, 255, 225, 114);
+                }
+                console_current_line.gameObject.GetComponent<Image>().color = color;
             }
 
             tick = 1f;
-            progress = 0f;
+            move_progress = 0f;
+            rotation_progress = 0f;
         }
     }
 }

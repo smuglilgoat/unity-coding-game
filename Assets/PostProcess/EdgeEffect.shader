@@ -109,7 +109,6 @@ Shader "Hidden/Edge Effect"
 				edge_normal = edge_normal > _normal_threshold ? 1 : 0;
 
 				float edge = 1-max(edge_normal, edge_depth);
-				//return depth0*10;
 				return color*edge;
 			}
 			ENDHLSL
