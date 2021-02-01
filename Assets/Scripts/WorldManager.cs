@@ -4,18 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class GenerateWorld : MonoBehaviour
-{
-    private GameObject floor_container;
-
-    [System.NonSerialized]
-    public int[] world_size = {8, 2, 8};
-    public int[, ,] collision_map;
-
-    public GameObject floor_unit_prefab;
-    public GameObject robot_prefab;
-    public GameObject rock_prefab;
-
+public class WorldManager : MonoBehaviour{
     public GameObject console;
     public TMP_InputField console_input;
     public RectTransform console_current_line;
@@ -44,47 +33,12 @@ public class GenerateWorld : MonoBehaviour
             this.rotation_to = rotation_to;
         }
     }
-    private Dictionary<GameObject, ToMove> to_move = new Dictionary<GameObject, ToMove>();
-    public List<GameObject> to_update = new List<GameObject>();
-
-    GameObject SpawnObject(GameObject prefab, Vector3Int position){
-        GameObject obj = Instantiate(prefab, position, Quaternion.identity);
-        collision_map[position.x, position.y, position.z] = 1;
-        obj.GetComponent<Thing>().position = position;
-        return obj;
-    }
+    private Dictionary<GameObject, ToMove> objects_to_reposition = new Dictionary<GameObject, ToMove>();
+    public List<GameObject> objects_to_update = new List<GameObject>();
 
     void Start(){
         console_input.onValueChanged.AddListener(delegate {ProgramChange(); });
         robot_toggle.onValueChanged.AddListener(delegate {ToggleRobot(); });
-
-        floor_container = new GameObject("FloorContainer");
-        floor_container.transform.position = new Vector3(0, 0, 0);
-
-        collision_map = new int[world_size[0], world_size[1], world_size[2]];
-        for(int i = 0; i < world_size[0]; i++){
-            for(int j = 0; j < world_size[1]; j++){
-                for(int k = 0; k < world_size[2]; k++){
-                    collision_map[i, j, k] = 0;
-                }
-            }
-        }
-
-        for(int i = 0; i < world_size[0]; i++){
-            for(int j = 0; j < world_size[2]; j++){
-                GameObject floor_unit = SpawnObject(floor_unit_prefab, new Vector3Int(i, 0, j));
-                floor_unit.transform.SetParent(floor_container.transform, false);
-            }
-        }
-
-        GameObject robot = SpawnObject(robot_prefab, new Vector3Int(0, 1, 1));
-        to_update.Add(robot);
-
-        SpawnObject(rock_prefab, new Vector3Int(4, 1, 1));
-        SpawnObject(rock_prefab, new Vector3Int(0, 1, 4));
-
-        /*GameObject rock = Instantiate(rock_prefab, Vector3.zero, Quaternion.identity);
-        collision_map[2, 1, 1] = 1;*/
     }
 
     void ProgramChange(){
@@ -95,6 +49,22 @@ public class GenerateWorld : MonoBehaviour
         if(selected_robot == null) return;
         selected_robot.GetComponent<Robot>().is_on = robot_toggle.isOn;
         console_input.readOnly = selected_robot.GetComponent<Robot>().is_on;
+    }
+
+    void CheckConsole(){
+        if(Input.GetKeyDown(KeyCode.Tab)){
+            console_up = false;
+        }
+
+        if(!console_up){
+            if(console_l < 0.5) console_l += Time.deltaTime*2;
+        }
+        else{
+            if(console_l > 0) console_l -= Time.deltaTime*2;
+        }
+        console.GetComponent<RectTransform>().anchoredPosition = Vector3.Lerp(
+            new Vector3(0, 650, 0),
+            new Vector3(0, 0, 0), console_l*2);
     }
 
     void Update(){
@@ -115,23 +85,11 @@ public class GenerateWorld : MonoBehaviour
             }
         }
 
-        if(Input.GetKeyDown(KeyCode.Tab)){
-            console_up = false;
-        }
+        CheckConsole();
 
-        if(console_up){
-            if(console_l < 0.5) console_l += Time.deltaTime*2;
-        }
-        else{
-            if(console_l > 0) console_l -= Time.deltaTime*2;
-        }
-        console.GetComponent<RectTransform>().localPosition = Vector3.Lerp(
-            new Vector3(0, -671, 0),
-            new Vector3(0, 0, 0), console_l*2);
-
-        foreach(KeyValuePair<GameObject, ToMove> o in to_move){
+        foreach(KeyValuePair<GameObject, ToMove> o in objects_to_reposition){
             Transform t = o.Key.transform;
-            t.position = Vector3.Lerp(o.Value.position_from, o.Value.position_to, move_progress);
+            t.localPosition = Vector3.Lerp(o.Value.position_from, o.Value.position_to, move_progress);
             t.rotation = Quaternion.Lerp(o.Value.rotation_from, o.Value.rotation_to, rotation_progress);
         }
 
@@ -139,23 +97,31 @@ public class GenerateWorld : MonoBehaviour
         move_progress += Time.deltaTime*move_speed;
         rotation_progress += Time.deltaTime*rotate_speed;
 
-        if(tick <= 0){
+        if(GetComponent<LevelLoader>().level_ready && tick <= 0){
+            // Move code cursor, doesn't work
             if(selected_robot != null){
                 console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
                                                         -selected_robot.GetComponent<Robot>().current_line*35+225, 0);
             }
-            foreach(KeyValuePair<GameObject, ToMove> o in to_move){
-                o.Key.transform.position = o.Value.position_to;
-            }
-            to_move.Clear();
 
-            foreach(GameObject o in to_update){
-                if(o.GetComponent<Robot>() != null && o.GetComponent<Robot>().Tick()){
-                    Vector3Int thing_pos = o.GetComponent<Thing>().position;
-                    Quaternion rotation_to = Quaternion.Euler(new Vector3(0, o.GetComponent<Thing>().orientation*90, 0));
-                    to_move[o] = new ToMove(o.transform.position, thing_pos, o.transform.rotation, rotation_to);
-                }
+            // Fix the position whether lerp finished or not
+            foreach(KeyValuePair<GameObject, ToMove> o in objects_to_reposition){
+                o.Key.transform.localPosition = o.Value.position_to;
             }
+            objects_to_reposition.Clear();
+
+            // Add objects to lerp to llist
+            foreach(GameObject o in objects_to_update){
+                if(o.GetComponent<Tickable>() != null){
+                    o.GetComponent<Tickable>().Tick();
+                }
+
+                Vector3Int new_pos = o.GetComponent<Movable>().position;
+                Quaternion rotation_to = Quaternion.Euler(new Vector3(0, o.GetComponent<Movable>().orientation*90, 0));
+                objects_to_reposition[o] = new ToMove(o.transform.localPosition, new_pos, o.transform.rotation, rotation_to);
+            }
+
+            // Red colored cursor for error
             if(selected_robot != null){
                 robot_toggle.isOn = selected_robot.GetComponent<Robot>().is_on;
                 Color32 color;

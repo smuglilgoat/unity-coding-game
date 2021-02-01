@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Robot : MonoBehaviour
-{
+public class Robot : MonoBehaviour, Tickable{
     [System.NonSerialized]
     public bool is_on = false;
     [System.NonSerialized]
@@ -113,8 +112,8 @@ public class Robot : MonoBehaviour
                         if(laser_on) break;
                         Vector3Int val = move_directions[operands[0]];
                         Vector3Int move = new Vector3Int(val.x, 0, val.y);
-                        gameObject.GetComponent<Thing>().Move(move);
-                        gameObject.GetComponent<Thing>().Rotate((int)val.z);
+                        gameObject.GetComponent<Movable>().Move(move);
+                        gameObject.GetComponent<Movable>().Rotate((int)val.z);
                         break;
                     }
                 }
