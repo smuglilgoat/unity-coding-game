@@ -16,7 +16,7 @@ public class WorldManager : MonoBehaviour{
 
     private float tick = 1f;
     private float move_progress = 0f;
-    private float move_speed = 3f;
+    private float move_speed = 1f;
     private float rotation_progress = 0f;
     private float rotate_speed = 3f;
 
@@ -110,15 +110,15 @@ public class WorldManager : MonoBehaviour{
             }
             objects_to_reposition.Clear();
 
-            // Add objects to lerp to llist
+            // Add objects to lerp to list
             foreach(GameObject o in objects_to_update){
                 if(o.GetComponent<Tickable>() != null){
                     o.GetComponent<Tickable>().Tick();
                 }
 
                 Vector3Int new_pos = o.GetComponent<Movable>().position;
-                Quaternion rotation_to = Quaternion.Euler(new Vector3(0, o.GetComponent<Movable>().orientation*90, 0));
-                objects_to_reposition[o] = new ToMove(o.transform.localPosition, new_pos, o.transform.rotation, rotation_to);
+                Quaternion new_rotation = Quaternion.Euler(new Vector3(0, o.GetComponent<Movable>().orientation*90, 0));
+                objects_to_reposition[o] = new ToMove(o.transform.localPosition, new_pos, o.transform.rotation, new_rotation);
             }
 
             // Red colored cursor for error
