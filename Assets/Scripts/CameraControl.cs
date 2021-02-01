@@ -7,11 +7,6 @@ public class CameraControl : MonoBehaviour{
     private float camera_zoom_speed = 0.6f;
     private float camera_pan_speed = 10f;
 
-    private bool enable_pan = true;
-
-    [System.NonSerialized]
-    private float camera_pan_padding = 3f;
-
     private float camera_min_pos = 21.25f;
     private Vector3 camera_min_rotation = new Vector3(60f, 0f, 0f);
     private float camera_max_pos = 12f;
@@ -29,21 +24,16 @@ public class CameraControl : MonoBehaviour{
                                     Quaternion.Euler(camera_max_rotation), camera_zoom);
         }
 
-        if(!enable_pan) return;
-
-        float padding_x = camera_pan_padding*Screen.width/100;
-        float padding_y = camera_pan_padding*Screen.height/100;
-
-        if(Input.mousePosition.x <= padding_x){
+        if(Input.mousePosition.x <= 0){
             transform.position += Vector3.left*camera_pan_speed*Time.deltaTime;
         }
-        else if(Input.mousePosition.x > Screen.width-padding_x){
+        else if(Input.mousePosition.x > Screen.width){
             transform.position += Vector3.right*camera_pan_speed*Time.deltaTime;
         }
-        if(Input.mousePosition.y <= padding_y){
+        if(Input.mousePosition.y <= 0){
             transform.position += Vector3.back*camera_pan_speed*Time.deltaTime;
         }
-        else if(Input.mousePosition.y > Screen.height-padding_y){
+        else if(Input.mousePosition.y > Screen.height){
             transform.position += Vector3.forward*camera_pan_speed*Time.deltaTime;
         }
 
