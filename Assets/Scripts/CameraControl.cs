@@ -1,3 +1,9 @@
+/*
+    Modifications:
+        21/02 - [Grumpy] - Padding Added to Camera pan 
+    -------------------------------------------- 
+    TODO: Change Cursor shape when moving camera
+*/
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
