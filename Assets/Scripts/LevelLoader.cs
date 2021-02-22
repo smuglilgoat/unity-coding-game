@@ -1,9 +1,9 @@
 /*
     Modifications:
-        21/02 - 
+        21/02 - Commented out Fading
     -------------------------------------------- 
     TODO: Fading Impl
-    TODO: JSON lvl file
+    TODO: Serialisable level ?
 */
 using System.Collections;
 using System.Collections.Generic;
@@ -20,12 +20,6 @@ public class LevelLoader : MonoBehaviour {
 
     public GameObject[] map_objects;
     public int[, , ] map;
-    public struct JSONMap {
-        public int x_axis;
-        public int y_axis;
-        public int z_axis;
-        public int[, , ] level_map;
-    };  
 
     [System.NonSerialized]
     public string current_level_id;
