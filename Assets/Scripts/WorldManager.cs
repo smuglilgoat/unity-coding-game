@@ -42,13 +42,13 @@ public class WorldManager : MonoBehaviour{
     }
 
     void ProgramChange(){
-        selected_robot.GetComponent<Robot>().program = console_input.text;
+        selected_robot.GetComponent<RobotLaser>().program = console_input.text;
     }
 
     void ToggleRobot(){
         if(selected_robot == null) return;
-        selected_robot.GetComponent<Robot>().is_on = robot_toggle.isOn;
-        console_input.readOnly = selected_robot.GetComponent<Robot>().is_on;
+        selected_robot.GetComponent<RobotLaser>().is_on = robot_toggle.isOn;
+        console_input.readOnly = selected_robot.GetComponent<RobotLaser>().is_on;
     }
 
     void CheckConsole(){
@@ -72,15 +72,15 @@ public class WorldManager : MonoBehaviour{
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if(Physics.Raycast(ray, out hit)){
-                if(hit.transform.GetComponent<Robot>()){
+                if(hit.transform.GetComponent<RobotLaser>()){
                     console_up = true;
                     selected_robot = hit.transform.gameObject;
-                    console_input.text = selected_robot.GetComponent<Robot>().program;
+                    console_input.text = selected_robot.GetComponent<RobotLaser>().program;
                     console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
-                                                        -selected_robot.GetComponent<Robot>().current_line*35+225, 0);
+                                                        -selected_robot.GetComponent<RobotLaser>().current_line*35+225, 0);
                     console_current_line.gameObject.GetComponent<Image>().color = new Color32(255, 255, 225, 114);
-                    robot_toggle.isOn = selected_robot.GetComponent<Robot>().is_on;
-                    console_input.readOnly = selected_robot.GetComponent<Robot>().is_on;
+                    robot_toggle.isOn = selected_robot.GetComponent<RobotLaser>().is_on;
+                    console_input.readOnly = selected_robot.GetComponent<RobotLaser>().is_on;
                 }
             }
         }
@@ -101,7 +101,7 @@ public class WorldManager : MonoBehaviour{
             // Move code cursor, doesn't work
             if(selected_robot != null){
                 console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
-                                                        -selected_robot.GetComponent<Robot>().current_line*35+225, 0);
+                                                        -selected_robot.GetComponent<RobotLaser>().current_line*35+225, 0);
             }
 
             // Fix the position whether lerp finished or not
@@ -123,9 +123,9 @@ public class WorldManager : MonoBehaviour{
 
             // Red colored cursor for error
             if(selected_robot != null){
-                robot_toggle.isOn = selected_robot.GetComponent<Robot>().is_on;
+                robot_toggle.isOn = selected_robot.GetComponent<RobotLaser>().is_on;
                 Color32 color;
-                if(selected_robot.GetComponent<Robot>().in_error){
+                if(selected_robot.GetComponent<RobotLaser>().in_error){
                     color = new Color32(255, 0, 0, 114);
                 }
                 else{

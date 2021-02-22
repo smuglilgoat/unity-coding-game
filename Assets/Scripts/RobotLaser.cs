@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Robot : MonoBehaviour, Tickable{
+public class RobotLaser : MonoBehaviour, Tickable{
     [System.NonSerialized]
     public bool is_on = false;
     [System.NonSerialized]
