@@ -1717,12 +1717,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ea599c6407e474a93020a0bad86b9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fade: {fileID: 371345359}
   map_objects:
   - {fileID: 3367617620563305733, guid: 738c2dc3773138e4d8ce163f5e032411, type: 3}
   - {fileID: 964839981171609716, guid: 3519367ae3cfb084ea43c1d3b094386e, type: 3}
   - {fileID: 7147322287097369896, guid: d47df401e8a3d5f4188932e5801ac109, type: 3}
   - {fileID: 5117120895291614004, guid: 115315ac044d0b847acd2ed218d58246, type: 3}
+  - {fileID: 1836151889361277417, guid: 30aee6433ef22c645b27362ffd45e623, type: 3}
 --- !u!1 &2009242355
 GameObject:
   m_ObjectHideFlags: 0

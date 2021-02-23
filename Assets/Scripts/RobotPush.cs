@@ -60,6 +60,9 @@ public class RobotPush : MonoBehaviour, Tickable{
                 }
                 success = false;
                 break;
+            case "push":
+                Debug.Log(gameObject.GetComponent<Movable>().orientation);
+                break;
             case "nop":
                 break;
             // case "laser":

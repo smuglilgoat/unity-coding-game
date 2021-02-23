@@ -16,7 +16,7 @@ public class WorldManager : MonoBehaviour{
 
     private float tick = 1f;
     private float move_progress = 0f;
-    private float move_speed = 1f;
+    private float move_speed = 2.0f;
     private float rotation_progress = 0f;
     private float rotate_speed = 3f;
 
@@ -42,13 +42,25 @@ public class WorldManager : MonoBehaviour{
     }
 
     void ProgramChange(){
-        selected_robot.GetComponent<RobotLaser>().program = console_input.text;
+        if (selected_robot.GetComponent<RobotLaser>())
+        {
+            selected_robot.GetComponent<RobotLaser>().program = console_input.text; 
+        } else {
+            selected_robot.GetComponent<RobotPush>().program = console_input.text;
+        }
     }
 
     void ToggleRobot(){
         if(selected_robot == null) return;
-        selected_robot.GetComponent<RobotLaser>().is_on = robot_toggle.isOn;
-        console_input.readOnly = selected_robot.GetComponent<RobotLaser>().is_on;
+        if (selected_robot.GetComponent<RobotLaser>())
+        {
+            selected_robot.GetComponent<RobotLaser>().is_on = robot_toggle.isOn;
+            console_input.readOnly = selected_robot.GetComponent<RobotLaser>().is_on; 
+        } else {
+            selected_robot.GetComponent<RobotPush>().is_on = robot_toggle.isOn;
+            console_input.readOnly = selected_robot.GetComponent<RobotPush>().is_on;
+        }
+        
     }
 
     void CheckConsole(){
@@ -82,6 +94,16 @@ public class WorldManager : MonoBehaviour{
                     robot_toggle.isOn = selected_robot.GetComponent<RobotLaser>().is_on;
                     console_input.readOnly = selected_robot.GetComponent<RobotLaser>().is_on;
                 }
+                if(hit.transform.GetComponent<RobotPush>()){
+                    console_up = true;
+                    selected_robot = hit.transform.gameObject;
+                    console_input.text = selected_robot.GetComponent<RobotPush>().program;
+                    console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
+                                                        -selected_robot.GetComponent<RobotPush>().current_line*35+225, 0);
+                    console_current_line.gameObject.GetComponent<Image>().color = new Color32(255, 255, 225, 114);
+                    robot_toggle.isOn = selected_robot.GetComponent<RobotPush>().is_on;
+                    console_input.readOnly = selected_robot.GetComponent<RobotPush>().is_on;
+                }
             }
         }
 
@@ -100,8 +122,14 @@ public class WorldManager : MonoBehaviour{
         if(GetComponent<LevelLoader>().level_ready && tick <= 0){
             // Move code cursor, doesn't work
             if(selected_robot != null){
-                console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
+                if (selected_robot.GetComponent<RobotLaser>())
+                {
+                    console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
                                                         -selected_robot.GetComponent<RobotLaser>().current_line*35+225, 0);
+                } else {
+                    console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
+                                                        -selected_robot.GetComponent<RobotPush>().current_line*35+225, 0);
+                }
             }
 
             // Fix the position whether lerp finished or not
@@ -123,15 +151,28 @@ public class WorldManager : MonoBehaviour{
 
             // Red colored cursor for error
             if(selected_robot != null){
-                robot_toggle.isOn = selected_robot.GetComponent<RobotLaser>().is_on;
-                Color32 color;
-                if(selected_robot.GetComponent<RobotLaser>().in_error){
-                    color = new Color32(255, 0, 0, 114);
+                if (selected_robot.GetComponent<RobotLaser>())
+                {
+                    robot_toggle.isOn = selected_robot.GetComponent<RobotLaser>().is_on;
+                    Color32 color;
+                    if(selected_robot.GetComponent<RobotLaser>().in_error){
+                        color = new Color32(255, 0, 0, 114);
+                    }
+                    else{
+                        color = new Color32(255, 255, 225, 114);
+                    }
+                    console_current_line.gameObject.GetComponent<Image>().color = color;selected_robot.GetComponent<RobotLaser>().program = console_input.text; 
+                } else {
+                    robot_toggle.isOn = selected_robot.GetComponent<RobotPush>().is_on;
+                    Color32 color;
+                    if(selected_robot.GetComponent<RobotPush>().in_error){
+                        color = new Color32(255, 0, 0, 114);
+                    }
+                    else{
+                        color = new Color32(255, 255, 225, 114);
+                    }
+                    console_current_line.gameObject.GetComponent<Image>().color = color;
                 }
-                else{
-                    color = new Color32(255, 255, 225, 114);
-                }
-                console_current_line.gameObject.GetComponent<Image>().color = color;
             }
 
             tick = 1f;
