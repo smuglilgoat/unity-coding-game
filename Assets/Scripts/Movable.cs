@@ -9,6 +9,7 @@ public class Movable: MonoBehaviour {
   public int orientation = 0;
   [System.NonSerialized]
   public int id;
+  public GameObject instance;
 
   public bool Move(Vector3Int direction) {
     Vector3Int new_pos = position + direction;
@@ -19,9 +20,12 @@ public class Movable: MonoBehaviour {
       new_pos.z >= 0 && new_pos.z < map.GetLength(2) &&
       map[new_pos.x, new_pos.y, new_pos.z] == 0) {
       id = GameObject.Find("World").GetComponent < LevelLoader > ().map[position.x, position.y, position.z];
+      instance = GameObject.Find("World").GetComponent < LevelLoader > ().map_instances[position.x, position.y, position.z];
       GameObject.Find("World").GetComponent < LevelLoader > ().map[position.x, position.y, position.z] = 0;
+      GameObject.Find("World").GetComponent < LevelLoader > ().map_instances[position.x, position.y, position.z] = null;
       position = new_pos;
       GameObject.Find("World").GetComponent < LevelLoader > ().map[position.x, position.y, position.z] = id;
+      GameObject.Find("World").GetComponent < LevelLoader > ().map_instances[position.x, position.y, position.z] = instance;
       return true;
     }
     return false;
