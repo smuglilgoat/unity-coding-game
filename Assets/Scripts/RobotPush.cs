@@ -61,7 +61,41 @@ public class RobotPush : MonoBehaviour, Tickable{
                 success = false;
                 break;
             case "push":
-                Debug.Log(gameObject.GetComponent<Movable>().orientation);
+                Vector3Int current_position = gameObject.GetComponent<Movable>().position;
+                int pushed_object;
+                GameObject pushed_object_instance;
+                Vector3Int dir;
+                Vector3Int vector;
+                switch (gameObject.GetComponent<Movable>().orientation)
+                {
+                    case 0:
+                        Debug.Log("Pushing right");
+                        Debug.Log("Current Position: " + current_position);
+                        pushed_object = GameObject.Find("World").GetComponent<LevelLoader>().map[current_position.x + 1, current_position.y, current_position.z];
+                        Debug.Log("Pushed Obj: " + pushed_object);
+                        break;
+                    case 1:
+                        Debug.Log("Pushing down");
+
+                        break;
+                    case 2:
+                        Debug.Log("Pushing left");
+
+                        break;
+                    case 3:
+                        Debug.Log("Pushing up");
+                        Debug.Log("Current Position: " + current_position);
+                        pushed_object = GameObject.Find("World").GetComponent<LevelLoader>().map[current_position.x, current_position.y, current_position.z + 1];
+                        Debug.Log("Pushed Obj: " + pushed_object);
+                        pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[current_position.x, current_position.y, current_position.z + 1];
+                        Debug.Log("Pushed Obj: " + pushed_object_instance);
+                        dir = move_directions["up"];
+                        vector = new Vector3Int(dir.x, 0, dir.y);
+                        pushed_object_instance.GetComponent<Movable>().Move(vector);
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case "nop":
                 break;

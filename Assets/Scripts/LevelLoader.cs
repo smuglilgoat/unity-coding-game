@@ -20,6 +20,7 @@ public class LevelLoader : MonoBehaviour {
 
     public GameObject[] map_objects;
     public int[, , ] map;
+    public GameObject[, , ] map_instances;
 
     [System.NonSerialized]
     public string current_level_id;
@@ -55,6 +56,7 @@ public class LevelLoader : MonoBehaviour {
             world_size[i] = int.Parse (line_split[i]);
         }
         map = new int[world_size[0], world_size[1], world_size[2]];
+        map_instances = new GameObject[world_size[0], world_size[1], world_size[2]];
 
         int z_counter = 0;
         int y_counter = 0;
@@ -87,6 +89,7 @@ public class LevelLoader : MonoBehaviour {
 
                     GameObject obj = SpawnObject (map_objects[map[x, y, z]], new Vector3Int (x, y, z));
                     obj.transform.SetParent (objects_container.transform, false);
+                    map_instances[x, y, z] = obj;
 
                     if (obj.GetComponent<Movable> ()) {
                         GetComponent<WorldManager> ().objects_to_update.Add (obj);
