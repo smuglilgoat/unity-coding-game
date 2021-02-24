@@ -69,26 +69,32 @@ public class RobotPush : MonoBehaviour, Tickable{
                 switch (gameObject.GetComponent<Movable>().orientation)
                 {
                     case 0:
-                        Debug.Log("Pushing right");
-                        Debug.Log("Current Position: " + current_position);
                         pushed_object = GameObject.Find("World").GetComponent<LevelLoader>().map[current_position.x + 1, current_position.y, current_position.z];
-                        Debug.Log("Pushed Obj: " + pushed_object);
+                        pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[current_position.x + 1, current_position.y, current_position.z];
+                        dir = move_directions["right"];
+                        vector = new Vector3Int(dir.x, 0, dir.y);
+                        pushed_object_instance.GetComponent<Movable>().Move(vector);
                         break;
                     case 1:
-                        Debug.Log("Pushing down");
-
+                        if (GameObject.Find("World").GetComponent<LevelLoader>().map[current_position.x, current_position.y, current_position.z - 1] != 0)
+                        {
+                            pushed_object = GameObject.Find("World").GetComponent<LevelLoader>().map[current_position.x, current_position.y, current_position.z - 1];
+                            pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[current_position.x, current_position.y, current_position.z - 1];
+                            dir = move_directions["down"];
+                            vector = new Vector3Int(dir.x, 0, dir.y);
+                            pushed_object_instance.GetComponent<Movable>().Move(vector);
+                        }
                         break;
                     case 2:
-                        Debug.Log("Pushing left");
-
+                        pushed_object = GameObject.Find("World").GetComponent<LevelLoader>().map[current_position.x - 1, current_position.y, current_position.z];
+                        pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[current_position.x - 1, current_position.y, current_position.z];
+                        dir = move_directions["left"];
+                        vector = new Vector3Int(dir.x, 0, dir.y);
+                        pushed_object_instance.GetComponent<Movable>().Move(vector);
                         break;
                     case 3:
-                        Debug.Log("Pushing up");
-                        Debug.Log("Current Position: " + current_position);
                         pushed_object = GameObject.Find("World").GetComponent<LevelLoader>().map[current_position.x, current_position.y, current_position.z + 1];
-                        Debug.Log("Pushed Obj: " + pushed_object);
                         pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[current_position.x, current_position.y, current_position.z + 1];
-                        Debug.Log("Pushed Obj: " + pushed_object_instance);
                         dir = move_directions["up"];
                         vector = new Vector3Int(dir.x, 0, dir.y);
                         pushed_object_instance.GetComponent<Movable>().Move(vector);
@@ -96,6 +102,16 @@ public class RobotPush : MonoBehaviour, Tickable{
                     default:
                         break;
                 }
+                break;
+            case "look":
+                if(operands.Count == 1){
+                    if(move_directions.ContainsKey(operands[0])){
+                        Vector3Int val = move_directions[operands[0]];
+                        gameObject.GetComponent<Movable>().Rotate((int)val.z);
+                        break;
+                    }
+                }
+                success = false;
                 break;
             case "nop":
                 break;
