@@ -62,7 +62,6 @@ public class RobotPush : MonoBehaviour, Tickable{
                 break;
             case "push":
                 Vector3Int curr_pos = gameObject.GetComponent<Movable>().position;
-                Debug.Log(curr_pos);
                 int[,,] map = GameObject.Find("World").GetComponent<LevelLoader>().map;
                 GameObject pushed_object_instance;
                 Vector3Int dir;
@@ -73,36 +72,48 @@ public class RobotPush : MonoBehaviour, Tickable{
                         if (curr_pos.x != (map.GetLength(0) - 1) && map[curr_pos.x + 1, curr_pos.y, curr_pos.z] != 0)
                         {
                             pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[curr_pos.x + 1, curr_pos.y, curr_pos.z];
-                            dir = move_directions["right"];
-                            vector = new Vector3Int(dir.x, 0, dir.y);
-                            pushed_object_instance.GetComponent<Movable>().Move(vector);
+                            if (pushed_object_instance.GetComponent<Movable>())
+                            {
+                                dir = move_directions["right"];
+                                vector = new Vector3Int(dir.x, 0, dir.y);
+                                pushed_object_instance.GetComponent<Movable>().Move(vector);
+                            }
                         }
                         break;
                     case 1:
                         if (curr_pos.z != 0 && map[curr_pos.x, curr_pos.y, curr_pos.z - 1] != 0)
                         {
                             pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[curr_pos.x, curr_pos.y, curr_pos.z - 1];
-                            dir = move_directions["down"];
-                            vector = new Vector3Int(dir.x, 0, dir.y);
-                            pushed_object_instance.GetComponent<Movable>().Move(vector);
+                            if (pushed_object_instance.GetComponent<Movable>())
+                            {
+                                dir = move_directions["down"];
+                                vector = new Vector3Int(dir.x, 0, dir.y);
+                                pushed_object_instance.GetComponent<Movable>().Move(vector);    
+                            }
                         }
                         break;
                     case 2:
                         if (curr_pos.x != 0 && map[curr_pos.x - 1, curr_pos.y, curr_pos.z] != 0)
                         {
                             pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[curr_pos.x - 1, curr_pos.y, curr_pos.z];
-                            dir = move_directions["left"];
-                            vector = new Vector3Int(dir.x, 0, dir.y);
-                            pushed_object_instance.GetComponent<Movable>().Move(vector);
+                            if (pushed_object_instance.GetComponent<Movable>())
+                            {
+                                dir = move_directions["left"];
+                                vector = new Vector3Int(dir.x, 0, dir.y);
+                                pushed_object_instance.GetComponent<Movable>().Move(vector);    
+                            }
                         }
                         break;
                     case 3:
                         if (curr_pos.z != (map.GetLength(2) - 1) && map[curr_pos.x, curr_pos.y, curr_pos.z + 1] != 0)
                         {
                             pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[curr_pos.x, curr_pos.y, curr_pos.z + 1];
-                            dir = move_directions["up"];
-                            vector = new Vector3Int(dir.x, 0, dir.y);
-                            pushed_object_instance.GetComponent<Movable>().Move(vector);
+                            if (pushed_object_instance.GetComponent<Movable>())
+                            {
+                               dir = move_directions["up"];
+                                vector = new Vector3Int(dir.x, 0, dir.y);
+                                pushed_object_instance.GetComponent<Movable>().Move(vector);      
+                            }
                         }
                         break;
                     default:
