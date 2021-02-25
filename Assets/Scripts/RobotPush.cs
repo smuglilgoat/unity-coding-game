@@ -77,8 +77,10 @@ public class RobotPush : MonoBehaviour, Tickable{
                                 dir = move_directions["right"];
                                 vector = new Vector3Int(dir.x, 0, dir.y);
                                 pushed_object_instance.GetComponent<Movable>().Move(vector);
+                                break;
                             }
                         }
+                        success = false;
                         break;
                     case 1:
                         if (curr_pos.z != 0 && map[curr_pos.x, curr_pos.y, curr_pos.z - 1] != 0)
@@ -86,11 +88,14 @@ public class RobotPush : MonoBehaviour, Tickable{
                             pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[curr_pos.x, curr_pos.y, curr_pos.z - 1];
                             if (pushed_object_instance.GetComponent<Movable>())
                             {
-                                dir = move_directions["down"];
-                                vector = new Vector3Int(dir.x, 0, dir.y);
-                                pushed_object_instance.GetComponent<Movable>().Move(vector);    
+                                // dir = move_directions["down"];
+                                // vector = new Vector3Int(dir.x, 0, dir.y);
+                                // pushed_object_instance.GetComponent<Movable>().Move(vector);
+                                pushed_object_instance.GetComponent<Rock>().Move("down");
+                                break;    
                             }
                         }
+                        success = false;
                         break;
                     case 2:
                         if (curr_pos.x != 0 && map[curr_pos.x - 1, curr_pos.y, curr_pos.z] != 0)
@@ -100,9 +105,11 @@ public class RobotPush : MonoBehaviour, Tickable{
                             {
                                 dir = move_directions["left"];
                                 vector = new Vector3Int(dir.x, 0, dir.y);
-                                pushed_object_instance.GetComponent<Movable>().Move(vector);    
+                                pushed_object_instance.GetComponent<Movable>().Move(vector);
+                                break;    
                             }
                         }
+                        success = false;
                         break;
                     case 3:
                         if (curr_pos.z != (map.GetLength(2) - 1) && map[curr_pos.x, curr_pos.y, curr_pos.z + 1] != 0)
@@ -110,11 +117,13 @@ public class RobotPush : MonoBehaviour, Tickable{
                             pushed_object_instance = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[curr_pos.x, curr_pos.y, curr_pos.z + 1];
                             if (pushed_object_instance.GetComponent<Movable>())
                             {
-                               dir = move_directions["up"];
+                                dir = move_directions["up"];
                                 vector = new Vector3Int(dir.x, 0, dir.y);
-                                pushed_object_instance.GetComponent<Movable>().Move(vector);      
+                                pushed_object_instance.GetComponent<Movable>().Move(vector);
+                                break;      
                             }
                         }
+                        success = false;
                         break;
                     default:
                         break;
