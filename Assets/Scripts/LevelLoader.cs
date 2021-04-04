@@ -1,10 +1,3 @@
-/*
-    Modifications:
-        21/02 - Commented out Fading
-    -------------------------------------------- 
-    TODO: Fading Impl
-    TODO: Serialisable level ?
-*/
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -13,10 +6,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class LevelLoader : MonoBehaviour {
-    // public RawImage fade;
-    // private float fade_speed = 0.5f;
-    // private float fade_progress = 0f;
-    // private bool fade_in;
+    public RawImage fade;
+    private float fade_speed = 99f;//0.5f;
+    private float fade_progress = 0f;
+    private bool fade_in;
 
     public GameObject[] map_objects;
     public int[, , ] map;
@@ -28,29 +21,29 @@ public class LevelLoader : MonoBehaviour {
     [System.NonSerialized]
     public bool level_ready = false;
 
-    GameObject SpawnObject (GameObject prefab, Vector3Int position) {
+    GameObject SpawnObject(GameObject prefab, Vector3Int position) {
         GameObject obj = Instantiate (prefab, position, Quaternion.identity);
-        if (obj.GetComponent<Movable> ()) obj.GetComponent<Movable> ().position = position;
+        if (obj.GetComponent<Movable>())obj.GetComponent<Movable>().position = position;
         return obj;
     }
 
-    // void FadeIn(bool i){
-    //     if(!i) fade.enabled = true;
-    //     fade_in = i;
-    //     fade_progress = 0;
-    // }
+    void FadeIn(bool i){
+        if(!i) fade.enabled = true;
+        fade_in = i;
+        fade_progress = 0;
+    }
 
     void Start () {
-        LoadLevel ("1");
+        LoadLevel("level_1");
     }
 
     void LoadLevel (string level_id) {
         level_ready = false;
 
-        StreamReader level_file = new StreamReader (Application.dataPath + "/Levels/" + level_id + ".level");
-        string line = level_file.ReadLine ();
+        StreamReader level_file = new StreamReader(Application.dataPath + "/Levels/" + level_id + ".level");
+        string line = level_file.ReadLine();
 
-        string[] line_split = line.Split (',');
+        string[] line_split = line.Split(',');
         int[] world_size = new int[line_split.Length];
         for (int i = 0; i < line_split.Length; i++) {
             world_size[i] = int.Parse (line_split[i]);
@@ -78,21 +71,21 @@ public class LevelLoader : MonoBehaviour {
 
         level_file.Close ();
 
-        GameObject objects_container = new GameObject ("ObjectsContainer");
-        objects_container.transform.position = new Vector3 (-Mathf.Floor (map.GetLength (0)) / 2 + 0.5f,
-            0, -Mathf.Floor (map.GetLength (2)) / 2 + 0.5f);
+        GameObject objects_container = new GameObject("ObjectsContainer");
+        objects_container.transform.position = new Vector3(-Mathf.Floor(map.GetLength (0)) / 2 + 0.5f,
+            0, -Mathf.Floor(map.GetLength(2)) / 2 + 0.5f);
 
-        for (int x = 0; x < map.GetLength (0); x++) {
-            for (int y = 0; y < map.GetLength (1); y++) {
-                for (int z = 0; z < map.GetLength (2); z++) {
+        for (int x = 0; x < map.GetLength(0); x++) {
+            for (int y = 0; y < map.GetLength(1); y++) {
+                for (int z = 0; z < map.GetLength(2); z++) {
                     if (map[x, y, z] == 0) continue;
 
-                    GameObject obj = SpawnObject (map_objects[map[x, y, z]], new Vector3Int (x, y, z));
-                    obj.transform.SetParent (objects_container.transform, false);
+                    GameObject obj = SpawnObject(map_objects[map[x, y, z]], new Vector3Int (x, y, z));
+                    obj.transform.SetParent(objects_container.transform, false);
                     map_instances[x, y, z] = obj;
 
-                    if (obj.GetComponent<Movable> ()) {
-                        GetComponent<WorldManager> ().objects_to_update.Add (obj);
+                    if(obj.GetComponent<Movable>()){
+                        GetComponent<WorldManager>().objects_to_update.Add(obj);
                     }
                 }
             }
@@ -102,23 +95,23 @@ public class LevelLoader : MonoBehaviour {
         level_ready = true;
     }
 
-    void Update () {
-        // if(fade_progress < 1){
-        //     Color c = fade.color;
+    void Update(){
+        if(fade_progress < 1){
+            Color c = fade.color;
 
-        //     if(fade_in){
-        //         c.a = fade_progress;
-        //     }
-        //     else{
-        //         c.a = 1-fade_progress;
-        //     }
+            if(fade_in){
+                c.a = fade_progress;
+            }
+            else{
+                c.a = 1-fade_progress;
+            }
 
-        //     fade.color = c;
-        //     fade_progress += Time.deltaTime*fade_speed;
+            fade.color = c;
+            fade_progress += Time.deltaTime*fade_speed;
 
-        //     if(fade_progress >= 1 && !fade_in){
-        //         fade.enabled = false;
-        //     }
-        // }
+            if(fade_progress >= 1 && !fade_in){
+                fade.enabled = false;
+            }
+        }
     }
 }

@@ -1,9 +1,3 @@
-/*
-    Modifications:
-        
-    -------------------------------------------- 
-    TODO: Heritage
-*/
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,72 +13,33 @@ public class RobotLaser : MonoBehaviour, Tickable{
     public bool in_error = false;
     private GameObject laser;
 
-    private Dictionary<string, Vector3Int> move_directions = new Dictionary<string, Vector3Int>{
-            {"right", new Vector3Int(1, 0, 0)},
-            {"down",  new Vector3Int(0, -1, 1)},
-            {"left",  new Vector3Int(-1, 0, 2)},
-            {"up",    new Vector3Int(0, 1, 3)},
-        };
-
     private LineRenderer laser_line;
     private Vector3 laser_target_pos;
-    private float laser_progress = 0;
-    private float laser_speed = 40f;
+    private float max_laser_distance = 500f;
 
     void Start(){
         laser_line = transform.Find("Laser").GetComponent<LineRenderer>();
         laser_line.positionCount = 2;
-    }
-
-    void TurnLaserOn(){
-        if(laser_on) return;
-        laser_on = true;
-
-        Vector3 laser_start = laser_line.gameObject.transform.position;
-        Vector3[] points = new Vector3[2];
-        points[0] = laser_start;
-        points[1] = laser_start;
-        laser_line.SetPositions(points);
-
-        RaycastHit[] hits;
-        float max_laser_distance = 300f;
-        hits = Physics.RaycastAll(laser_start, transform.right, max_laser_distance);
-        if(hits.Length > 0){
-            laser_target_pos = hits[0].point;
-        }
-        else{
-            laser_target_pos = transform.right*max_laser_distance;
-        }
-        laser_progress = 0;
-    }
-
-    void TurnLaserOff(){
-        if(!laser_on) return;
-        laser_line.SetPosition(1, laser_target_pos);
-        laser_on = false;
-        laser_progress = 0;
+        laser_line.SetPosition(0, laser_line.gameObject.transform.position);
+        laser_line.SetPosition(1, laser_line.gameObject.transform.position);
     }
 
     void Update(){
-        if(laser_progress < 1){
-            if(laser_on){
-                laser_line.SetPosition(1, Vector3.Lerp(laser_line.GetPosition(0), laser_target_pos, laser_progress));
+        if(laser_on){
+            RaycastHit[] hits;
+            hits = Physics.RaycastAll(laser_line.gameObject.transform.position, transform.right, max_laser_distance);
+            if(hits.Length > 0){
+                laser_target_pos = hits[0].point;
             }
             else{
-                laser_line.SetPosition(0, Vector3.Lerp(laser_line.gameObject.transform.position, laser_target_pos, laser_progress));
+                laser_target_pos = transform.right*max_laser_distance;
             }
-
-            float s = Vector3.Distance(laser_line.gameObject.transform.position, laser_target_pos);
-            laser_progress += laser_speed/s*Time.deltaTime;
-            if(laser_progress >= 1){
-                if(laser_on){
-                    laser_line.SetPosition(1, Vector3.Lerp(laser_line.GetPosition(0), laser_target_pos, 1));
-                }
-                else{
-                    laser_line.SetPosition(0, laser_line.gameObject.transform.position);
-                    laser_line.SetPosition(1, laser_line.gameObject.transform.position);
-                }
-            }
+            laser_line.SetPosition(0, laser_line.gameObject.transform.position);
+            laser_line.SetPosition(1, laser_target_pos);
+        }
+        else{
+            laser_line.SetPosition(0, laser_line.gameObject.transform.position);
+            laser_line.SetPosition(1, laser_line.gameObject.transform.position);
         }
     }
 
@@ -114,12 +69,23 @@ public class RobotLaser : MonoBehaviour, Tickable{
         switch(operation){
             case "mov":
                 if(operands.Count == 1){
-                    if(move_directions.ContainsKey(operands[0])){
+                    if(GetComponent<Movable>().move_directions.ContainsKey(operands[0])){
                         if(laser_on) break;
-                        Vector3Int val = move_directions[operands[0]];
+                        Vector3Int val = GetComponent<Movable>().move_directions[operands[0]];
                         Vector3Int move = new Vector3Int(val.x, 0, val.y);
                         gameObject.GetComponent<Movable>().Move(move);
                         gameObject.GetComponent<Movable>().Rotate((int)val.z);
+                        break;
+                    }
+                }
+                success = false;
+                break;
+            case "turn":
+                if(operands.Count == 1){
+                    if(GetComponent<Movable>().rotate_directions.ContainsKey(operands[0])){
+                        if(laser_on) break;
+                        int val = GetComponent<Movable>().rotate_directions[operands[0]];
+                        gameObject.GetComponent<Movable>().Rotate(val);
                         break;
                     }
                 }
@@ -130,11 +96,11 @@ public class RobotLaser : MonoBehaviour, Tickable{
             case "laser":
                 if(operands.Count == 1){
                     if(operands[0] == "on"){
-                        TurnLaserOn();
+                        laser_on = true;
                         break;
                     }
                     else if(operands[0] == "off"){
-                        TurnLaserOff();
+                        laser_on = false;
                         break;
                     }
                 }
@@ -143,6 +109,21 @@ public class RobotLaser : MonoBehaviour, Tickable{
             default:
                 success = false;
                 break;
+        }
+
+        if(laser_on){
+            Vector3Int direction_vector = GetComponent<Movable>().GetDirectionVector();
+            Vector3Int current_pos = GetComponent<Movable>().position+direction_vector;
+            while(GetComponent<Movable>().PositionInBound(current_pos)){
+                GameObject current_cell = GameObject.Find("World").GetComponent<LevelLoader>()
+                                        .map_instances[current_pos.x, current_pos.y, current_pos.z];
+                if(current_cell != null){
+                    Debug.Log("Touching : ");
+                    Debug.Log(current_cell);
+                    break;
+                }
+                current_pos += direction_vector;
+            }
         }
 
         if(success){

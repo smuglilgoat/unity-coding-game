@@ -145,7 +145,7 @@ public class WorldManager : MonoBehaviour{
                 }
 
                 Vector3Int new_pos = o.GetComponent<Movable>().position;
-                Quaternion new_rotation = Quaternion.Euler(new Vector3(0, o.GetComponent<Movable>().orientation*90, 0));
+                Quaternion new_rotation = Quaternion.Euler(new Vector3(0, o.GetComponent<Movable>().direction*90, 0));
                 objects_to_reposition[o] = new ToMove(o.transform.localPosition, new_pos, o.transform.rotation, new_rotation);
             }
 
