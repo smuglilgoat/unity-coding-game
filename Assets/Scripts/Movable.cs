@@ -7,7 +7,6 @@ public class Movable: MonoBehaviour {
     public Vector3Int position;
     [System.NonSerialized]
     public int direction = 0;
-    [System.NonSerialized]
     public bool pushable = false;
 
     public bool PositionInBound(Vector3Int position){

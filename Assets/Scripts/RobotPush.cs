@@ -10,10 +10,17 @@ public class RobotPush : MonoBehaviour, Tickable{
     public int current_line = 0;
     public bool in_error = false;
 
+    [System.NonSerialized]
+    public bool burned = false;
+
+    public void Burn(){
+        burned = true;
+    }
+
     public bool Tick(){
         bool success = true;
 
-        if(!is_on){
+        if(!is_on || burned){
             return false;
         }
 
@@ -48,6 +55,7 @@ public class RobotPush : MonoBehaviour, Tickable{
                                 push_pos.x, push_pos.y, push_pos.z] == 0){
                             GameObject object_to_push = GameObject.Find("World").GetComponent<LevelLoader>().map_instances[
                                 new_pos.x, new_pos.y, new_pos.z];
+
                             if(object_to_push != null &&
                                 object_to_push.GetComponent<Movable>() &&
                                 object_to_push.GetComponent<Movable>().pushable){

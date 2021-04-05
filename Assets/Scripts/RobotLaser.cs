@@ -16,6 +16,15 @@ public class RobotLaser : MonoBehaviour, Tickable{
     private LineRenderer laser_line;
     private Vector3 laser_target_pos;
     private float max_laser_distance = 500f;
+    private GameObject previous_prism;
+
+    [System.NonSerialized]
+    public bool burned = false;
+
+    public void Burn(){
+        laser_on = false; // bug where previous_prism isn't turned off
+        burned = true;
+    }
 
     void Start(){
         laser_line = transform.Find("Laser").GetComponent<LineRenderer>();
@@ -28,6 +37,8 @@ public class RobotLaser : MonoBehaviour, Tickable{
         if(laser_on){
             RaycastHit[] hits;
             hits = Physics.RaycastAll(laser_line.gameObject.transform.position, transform.right, max_laser_distance);
+            System.Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
+
             if(hits.Length > 0){
                 laser_target_pos = hits[0].point;
             }
@@ -46,7 +57,7 @@ public class RobotLaser : MonoBehaviour, Tickable{
     public bool Tick(){
         bool success = true;
 
-        if(!is_on){
+        if(!is_on || burned){
             return false;
         }
 
@@ -114,15 +125,39 @@ public class RobotLaser : MonoBehaviour, Tickable{
         if(laser_on){
             Vector3Int direction_vector = GetComponent<Movable>().GetDirectionVector();
             Vector3Int current_pos = GetComponent<Movable>().position+direction_vector;
+            bool didnt_find_anything = true;
             while(GetComponent<Movable>().PositionInBound(current_pos)){
                 GameObject current_cell = GameObject.Find("World").GetComponent<LevelLoader>()
                                         .map_instances[current_pos.x, current_pos.y, current_pos.z];
                 if(current_cell != null){
-                    Debug.Log("Touching : ");
-                    Debug.Log(current_cell);
+                    didnt_find_anything = false;
+
+                    if(current_cell != previous_prism && previous_prism != null){
+                        previous_prism.GetComponent<LaserReceiver>().activated = false;
+                    }
+
+                    if(current_cell.GetComponent<LaserReceiver>()){
+                        previous_prism = current_cell;
+                        previous_prism.GetComponent<LaserReceiver>().activated = true;
+                    }
+                    else if(current_cell.GetComponent<RobotLaser>()){
+                        current_cell.GetComponent<RobotLaser>().Burn();
+                    }
+                    else if(current_cell.GetComponent<RobotPush>()){
+                        current_cell.GetComponent<RobotPush>().Burn();
+                    }
                     break;
                 }
                 current_pos += direction_vector;
+            }
+
+            if(didnt_find_anything && previous_prism != null){
+                previous_prism.GetComponent<LaserReceiver>().activated = false;
+            }
+        }
+        else{
+            if(previous_prism != null){
+                previous_prism.GetComponent<LaserReceiver>().activated = false;
             }
         }
 

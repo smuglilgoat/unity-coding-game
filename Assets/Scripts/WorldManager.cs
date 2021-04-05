@@ -8,7 +8,8 @@ public class WorldManager : MonoBehaviour{
     public GameObject console;
     public TMP_InputField console_input;
     public RectTransform console_current_line;
-    public Toggle robot_toggle;
+    public Button start_button;
+    public Button restart_button;
     private bool console_up = false;
     private float console_l = 0f;
 
@@ -34,33 +35,48 @@ public class WorldManager : MonoBehaviour{
         }
     }
     private Dictionary<GameObject, ToMove> objects_to_reposition = new Dictionary<GameObject, ToMove>();
+    [System.NonSerialized]
     public List<GameObject> objects_to_update = new List<GameObject>();
 
     void Start(){
-        console_input.onValueChanged.AddListener(delegate {ProgramChange(); });
-        robot_toggle.onValueChanged.AddListener(delegate {ToggleRobot(); });
+        console_input.onValueChanged.AddListener(delegate { ProgramChange(); });
+        start_button.onClick.AddListener(delegate { StartLevel(); });
+        restart_button.onClick.AddListener(delegate { RestartLevel(); });
     }
 
     void ProgramChange(){
-        if (selected_robot.GetComponent<RobotLaser>())
-        {
-            selected_robot.GetComponent<RobotLaser>().program = console_input.text; 
-        } else {
+        if(selected_robot.GetComponent<RobotLaser>()){
+            selected_robot.GetComponent<RobotLaser>().program = console_input.text;
+        }
+        else{
             selected_robot.GetComponent<RobotPush>().program = console_input.text;
         }
     }
 
-    void ToggleRobot(){
-        if(selected_robot == null) return;
-        if (selected_robot.GetComponent<RobotLaser>())
-        {
-            selected_robot.GetComponent<RobotLaser>().is_on = robot_toggle.isOn;
-            console_input.readOnly = selected_robot.GetComponent<RobotLaser>().is_on; 
-        } else {
-            selected_robot.GetComponent<RobotPush>().is_on = robot_toggle.isOn;
-            console_input.readOnly = selected_robot.GetComponent<RobotPush>().is_on;
+    private bool restart_next_frame = false;
+    void RestartLevel(){
+        restart_next_frame = true;
+    }
+
+    void RestartLevel2(){
+        objects_to_reposition = new Dictionary<GameObject, ToMove>();
+        objects_to_update = new List<GameObject>();
+        GetComponent<LevelLoader>().level_ready = false;
+        GetComponent<LevelLoader>().LoadLevel(GetComponent<LevelLoader>().current_level_id);
+        console_input.readOnly = false;
+    }
+
+    void StartLevel(){
+        console_input.readOnly = true;
+
+        foreach(GameObject o in objects_to_update){
+            if(o.GetComponent<RobotLaser>()){
+                o.GetComponent<RobotLaser>().is_on = true;
+            }
+            else if(o.GetComponent<RobotPush>()){
+                o.GetComponent<RobotPush>().is_on = true;
+            }
         }
-        
     }
 
     void CheckConsole(){
@@ -75,34 +91,36 @@ public class WorldManager : MonoBehaviour{
             if(console_l > 0) console_l -= Time.deltaTime*2;
         }
         console.GetComponent<RectTransform>().anchoredPosition = Vector3.Lerp(
-            new Vector3(0, 650, 0),
+            new Vector3(0, 580, 0),
             new Vector3(0, 0, 0), console_l*2);
     }
 
     void Update(){
+        if(!GetComponent<LevelLoader>().level_ready) return;
+        if(restart_next_frame){
+            restart_next_frame = false;
+            RestartLevel2();
+        }
+
         if(Input.GetMouseButtonDown(0)){
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if(Physics.Raycast(ray, out hit)){
-                if(hit.transform.GetComponent<RobotLaser>()){
+                if(hit.transform.GetComponent<RobotLaser>() && !hit.transform.GetComponent<RobotLaser>().burned){
                     console_up = true;
                     selected_robot = hit.transform.gameObject;
                     console_input.text = selected_robot.GetComponent<RobotLaser>().program;
                     console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
                                                         -selected_robot.GetComponent<RobotLaser>().current_line*35+225, 0);
                     console_current_line.gameObject.GetComponent<Image>().color = new Color32(255, 255, 225, 114);
-                    robot_toggle.isOn = selected_robot.GetComponent<RobotLaser>().is_on;
-                    console_input.readOnly = selected_robot.GetComponent<RobotLaser>().is_on;
                 }
-                if(hit.transform.GetComponent<RobotPush>()){
+                if(hit.transform.GetComponent<RobotPush>() && !hit.transform.GetComponent<RobotPush>().burned){
                     console_up = true;
                     selected_robot = hit.transform.gameObject;
                     console_input.text = selected_robot.GetComponent<RobotPush>().program;
                     console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
                                                         -selected_robot.GetComponent<RobotPush>().current_line*35+225, 0);
                     console_current_line.gameObject.GetComponent<Image>().color = new Color32(255, 255, 225, 114);
-                    robot_toggle.isOn = selected_robot.GetComponent<RobotPush>().is_on;
-                    console_input.readOnly = selected_robot.GetComponent<RobotPush>().is_on;
                 }
             }
         }
@@ -122,11 +140,11 @@ public class WorldManager : MonoBehaviour{
         if(GetComponent<LevelLoader>().level_ready && tick <= 0){
             // Move code cursor, doesn't work
             if(selected_robot != null){
-                if (selected_robot.GetComponent<RobotLaser>())
-                {
+                if(selected_robot.GetComponent<RobotLaser>()){
                     console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
                                                         -selected_robot.GetComponent<RobotLaser>().current_line*35+225, 0);
-                } else {
+                }
+                else{
                     console_current_line.localPosition = new Vector3(console_current_line.localPosition.x,
                                                         -selected_robot.GetComponent<RobotPush>().current_line*35+225, 0);
                 }
@@ -153,7 +171,6 @@ public class WorldManager : MonoBehaviour{
             if(selected_robot != null){
                 if (selected_robot.GetComponent<RobotLaser>())
                 {
-                    robot_toggle.isOn = selected_robot.GetComponent<RobotLaser>().is_on;
                     Color32 color;
                     if(selected_robot.GetComponent<RobotLaser>().in_error){
                         color = new Color32(255, 0, 0, 114);
@@ -163,7 +180,6 @@ public class WorldManager : MonoBehaviour{
                     }
                     console_current_line.gameObject.GetComponent<Image>().color = color;selected_robot.GetComponent<RobotLaser>().program = console_input.text; 
                 } else {
-                    robot_toggle.isOn = selected_robot.GetComponent<RobotPush>().is_on;
                     Color32 color;
                     if(selected_robot.GetComponent<RobotPush>().in_error){
                         color = new Color32(255, 0, 0, 114);

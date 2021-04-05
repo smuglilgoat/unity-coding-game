@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8595630064246101567}
   - component: {fileID: 5029696275192403429}
   m_Layer: 0
-  m_Name: Bottom
+  m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -173,7 +173,7 @@ GameObject:
   - component: {fileID: 1518297318301876955}
   - component: {fileID: 1647899461674569084}
   m_Layer: 0
-  m_Name: Point Light
+  m_Name: Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -264,7 +264,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8123154290416456427}
-  - component: {fileID: 5437464642929307380}
+  - component: {fileID: 209441207293303082}
+  - component: {fileID: 4971953684446666163}
   m_Layer: 0
   m_Name: LaserReceiver
   m_TagString: Untagged
@@ -289,7 +290,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &5437464642929307380
+--- !u!114 &209441207293303082
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939906184788806702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8901d938d1ca5064a8a4e1c973dda58f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prism_material: {fileID: 2100000, guid: 9001335a50187c141bb1957c018e7a92, type: 2}
+  prism_material_activated: {fileID: 2100000, guid: 541283bb397de7142b25a346493feb86, type: 2}
+  light_color: {r: 0, g: 0.7019608, b: 1, a: 1}
+  light_color_activated: {r: 1, g: 0, b: 0, a: 1}
+--- !u!65 &4971953684446666163
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -300,5 +317,5 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.5648639, y: 1.1388527, z: 0.5778532}
+  m_Center: {x: -0.00000011920929, y: 0.06942636, z: 0.003247261}

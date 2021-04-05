@@ -5,15 +5,15 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LevelLoader : MonoBehaviour {
+public class LevelLoader : MonoBehaviour{
     public RawImage fade;
     private float fade_speed = 99f;//0.5f;
     private float fade_progress = 0f;
     private bool fade_in;
 
     public GameObject[] map_objects;
-    public int[, , ] map;
-    public GameObject[, , ] map_instances;
+    public int[,,] map;
+    public GameObject[,,] map_instances;
 
     [System.NonSerialized]
     public string current_level_id;
@@ -21,7 +21,7 @@ public class LevelLoader : MonoBehaviour {
     [System.NonSerialized]
     public bool level_ready = false;
 
-    GameObject SpawnObject(GameObject prefab, Vector3Int position) {
+    GameObject SpawnObject(GameObject prefab, Vector3Int position){
         GameObject obj = Instantiate (prefab, position, Quaternion.identity);
         if (obj.GetComponent<Movable>())obj.GetComponent<Movable>().position = position;
         return obj;
@@ -33,11 +33,11 @@ public class LevelLoader : MonoBehaviour {
         fade_progress = 0;
     }
 
-    void Start () {
+    void Start(){
         LoadLevel("level_1");
     }
 
-    void LoadLevel (string level_id) {
+    public void LoadLevel(string level_id){
         level_ready = false;
 
         StreamReader level_file = new StreamReader(Application.dataPath + "/Levels/" + level_id + ".level");
@@ -63,13 +63,17 @@ public class LevelLoader : MonoBehaviour {
                 map[i, y_counter, world_size[2] - 1 - z_counter] = int.Parse (line_split[i]);
             }
             z_counter++;
-            if (z_counter == world_size[2]) {
+            if(z_counter == world_size[2]){
                 z_counter = 0;
                 y_counter++;
             }
         }
 
-        level_file.Close ();
+        level_file.Close();
+
+        if(GameObject.Find("ObjectsContainer")){
+            Destroy(GameObject.Find("ObjectsContainer"));
+        }
 
         GameObject objects_container = new GameObject("ObjectsContainer");
         objects_container.transform.position = new Vector3(-Mathf.Floor(map.GetLength (0)) / 2 + 0.5f,
